@@ -21,7 +21,7 @@ def write_tree(directory="."):
                 obj_entries.append((entry.name, oid, obj_type))
 
     tree = "".join(
-        f"{name} {oid} {obj_type}\n" for name, oid, obj_type in sorted(obj_entries)
+        f"{obj_type} {oid} {name}\n" for name, oid, obj_type in sorted(obj_entries)
     )
     return data.hash_object(tree.encode(), "tree")
 

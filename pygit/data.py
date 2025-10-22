@@ -9,6 +9,7 @@ def init():
     os.makedirs(f"{git_dir}/objects")
 
 
+# Write binary data into file name that generated using sha-1 & return object id
 def hash_object(data, obj_type="blob"):
     obj = obj_type.encode() + b"\x00" + data
     oid = hashlib.sha1(obj).hexdigest()
