@@ -34,3 +34,9 @@ def get_object(oid, expected="blob"):
 def set_HEAD(oid):
     with open(f"{git_dir}/HEAD", "w") as f:
         f.write(oid)
+
+
+def get_HEAD():
+    if os.path.isfile(f"{git_dir}/HEAD"):
+        with open(f"{git_dir}/HEAD") as f:
+            return f.read().strip()
