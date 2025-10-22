@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+import textwrap
 
 from . import base
 from . import data
@@ -40,7 +41,23 @@ def parse_args():
     commit_parser.set_defaults(func=commit)
     commit_parser.add_argument("-m", "--message", required=True)
 
+    log_parser = commands.add_parser("log")
+    log_parser.set_defaults(func=log)
+    log_parser.add_argument("oid", nargs="?")
+
     return parser.parse_args()
+
+
+def log(args):
+    oid = args.oid or data.get_HEAD()
+    while oid:
+        commit = base.get_commit(oid)
+
+        print(f"commit {oid}\n")
+        print(textwrap.indent(commit.message, "    "))
+        print("")
+
+        oid = commit.parent
 
 
 def commit(args):
