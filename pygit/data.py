@@ -28,3 +28,9 @@ def get_object(oid, expected="blob"):
     if expected is not None:
         assert obj_type == expected, f"Expect {expected}, got {obj_type}"
     return content
+
+
+# set the last commit's object id in .pygit/HEAD
+def set_HEAD(oid):
+    with open(f"{git_dir}/HEAD", "w") as f:
+        f.write(oid)
