@@ -31,12 +31,15 @@ def get_object(oid, expected="blob"):
 
 
 # set the last commit's object id in .pygit/HEAD
-def set_HEAD(oid):
-    with open(f"{git_dir}/HEAD", "w") as f:
+def update_ref(ref, oid):
+    ref_path = f"{git_dir}/{ref}"
+    os.makedirs(os.path.dirname(ref_path), exist_ok=True)
+    with open(ref_path, "w") as f:
         f.write(oid)
 
 
-def get_HEAD():
-    if os.path.isfile(f"{git_dir}/HEAD"):
-        with open(f"{git_dir}/HEAD") as f:
+def get_ref(ref):
+    ref_path = f"{git_dir}/{ref}"
+    if os.path.isfile(ref_path):
+        with open(ref_path) as f:
             return f.read().strip()
