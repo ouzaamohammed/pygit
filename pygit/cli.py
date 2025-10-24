@@ -60,7 +60,17 @@ def parse_args():
     k_parser = commands.add_parser("k")
     k_parser.set_defaults(func=k)
 
+    branch_parser = commands.add_parser("branch")
+    branch_parser.set_defaults(func=branch)
+    branch_parser.add_argument("name")
+    branch_parser.add_argument("start_point", default="@", type=oid, nargs="?")
+
     return parser.parse_args()
+
+
+def branch(args):
+    base.create_branch(args.name, args.start_point)
+    print(f"Branch {args.name} created at {args.start_point[:10]}")
 
 
 def k(args):
