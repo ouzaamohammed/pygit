@@ -63,8 +63,16 @@ def parse_args():
 
 
 def k(args):
+    oids = set()
     for refname, ref in data.iter_refs():
         print(refname, ref)
+        oids.add(ref)
+
+    for oid in base.iter_commits_and_parents(oids):
+        print(oid)
+        commit = base.get_commit(oid)
+        if commit.parent:
+            print("Parent", commit.parent)
 
 
 def tag(args):
