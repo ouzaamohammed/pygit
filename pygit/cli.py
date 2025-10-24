@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 import textwrap
+import subprocess
 
 from . import base
 from . import data
@@ -63,16 +64,28 @@ def parse_args():
 
 
 def k(args):
+    dot = "digraph commits {\n"
+
     oids = set()
     for refname, ref in data.iter_refs():
-        print(refname, ref)
+        dot += f'"{refname}" [shape=note]\n'
+        dot += f'"{refname}" -> "{ref}"\n'
+
         oids.add(ref)
 
     for oid in base.iter_commits_and_parents(oids):
-        print(oid)
         commit = base.get_commit(oid)
+        dot += f'"{oid}" [shape=box style=filled label="{oid[:10]}"]\n'
         if commit.parent:
-            print("Parent", commit.parent)
+            dot += f'"{oid}" -> "{commit.parent}"\n'
+
+    dot += "}"
+    print(dot)
+
+    with subprocess.Popen(
+        ["dot", "-Tx11", "/dev/stdin"], stdin=subprocess.PIPE
+    ) as proc:
+        proc.communicate(dot.encode())
 
 
 def tag(args):
@@ -84,15 +97,12 @@ def checkout(args):
 
 
 def log(args):
-    oid = args.oid
-    while oid:
+    for oid in base.iter_commits_and_parents({args.oid}):
         commit = base.get_commit(oid)
 
         print(f"commit {oid}\n")
         print(textwrap.indent(commit.message, "    "))
         print("")
-
-        oid = commit.parent
 
 
 def commit(args):

@@ -4,7 +4,7 @@ import operator
 import string
 
 from . import data
-from collections import namedtuple
+from collections import deque, namedtuple
 
 
 def write_tree(directory="."):
@@ -150,15 +150,15 @@ def get_oid(name):
 
 
 def iter_commits_and_parents(oids):
-    oids = set(oids)
+    oids = deque(oids)
     visited = set()
 
     while oids:
-        oid = oids.pop()
+        oid = oids.popleft()
         if not oid or oid in visited:
             continue
         visited.add(oid)
         yield oid
 
         commit = get_commit(oid)
-        oids.add(commit.parent)
+        oids.appendleft(commit.parent)
