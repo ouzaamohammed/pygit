@@ -128,3 +128,7 @@ def checkout(oid):
 
 def tag(name, oid):
     data.update_ref(f"refs/tags/{name}", oid)
+
+
+def get_oid(name):
+    return data.get_ref(name) or name
