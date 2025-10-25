@@ -36,32 +36,40 @@ ref_value = namedtuple("ref_value", ["symbolic", "value"])
 
 
 # set the last commit's object id in .pygit/HEAD
-def update_ref(ref, value):
+def update_ref(ref, value, deref=True):
     assert not value.symbolic
+    ref = _get_ref_internal(ref, deref)[0]
     ref_path = f"{git_dir}/{ref}"
     os.makedirs(os.path.dirname(ref_path), exist_ok=True)
     with open(ref_path, "w") as f:
         f.write(value.value)
 
 
-def get_ref(ref):
+def get_ref(ref, deref=True):
+    return _get_ref_internal(ref, deref)[1]
+
+
+def _get_ref_internal(ref, deref):
     ref_path = f"{git_dir}/{ref}"
     value = None
     if os.path.isfile(ref_path):
         with open(ref_path) as f:
             value = f.read().strip()
 
-    if value and value.startswith("ref: "):
-        return get_ref(value.split(":", 1)[1].strip())
+    symbolic = bool(value) and value.startswith("ref: ")
+    if symbolic:
+        value = value.split(":", 1)[1].strip()
+        if deref:
+            return _get_ref_internal(value, deref=True)
 
-    return ref_value(symbolic=False, value=value)
+    return ref, ref_value(symbolic=symbolic, value=value)
 
 
-def iter_refs():
+def iter_refs(deref=True):
     refs = ["HEAD"]
     for root, _, filenames in os.walk(f"{git_dir}/refs/"):
         root = os.path.relpath(root, git_dir)
         refs.extend(f"{root}/{filename}" for filename in filenames)
 
     for refname in refs:
-        yield refname, get_ref(refname)
+        yield refname, get_ref(refname, deref=deref)

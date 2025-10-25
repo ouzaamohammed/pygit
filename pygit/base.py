@@ -128,7 +128,7 @@ def checkout(oid):
 
 
 def create_tag(name, oid):
-    data.update_ref(f"refs/tags/{name}", data.ref_value(symbolic=False, value=oid)
+    data.update_ref(f"refs/tags/{name}", data.ref_value(symbolic=False, value=oid))
 
 
 def get_oid(name):
@@ -138,7 +138,7 @@ def get_oid(name):
     # name is ref
     refs_to_try = [f"{name}", f"refs/{name}", f"refs/tags/{name}", f"refs/heads/{name}"]
     for ref in refs_to_try:
-        if data.get_ref(ref).value:
+        if data.get_ref(ref, deref=False).value:
             return data.get_ref(ref).value
 
     # name is SHA1
