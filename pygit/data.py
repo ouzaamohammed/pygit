@@ -1,6 +1,8 @@
 import os
 import hashlib
 
+from collections import namedtuple
+
 git_dir = ".pygit"
 
 
@@ -30,12 +32,16 @@ def get_object(oid, expected="blob"):
     return content
 
 
+ref_value = namedtuple("ref_value", ["symbolic", "value"])
+
+
 # set the last commit's object id in .pygit/HEAD
-def update_ref(ref, oid):
+def update_ref(ref, value):
+    assert not value.symbolic
     ref_path = f"{git_dir}/{ref}"
     os.makedirs(os.path.dirname(ref_path), exist_ok=True)
     with open(ref_path, "w") as f:
-        f.write(oid)
+        f.write(value.value)
 
 
 def get_ref(ref):
@@ -48,7 +54,7 @@ def get_ref(ref):
     if value and value.startswith("ref: "):
         return get_ref(value.split(":", 1)[1].strip())
 
-    return value
+    return ref_value(symbolic=False, value=value)
 
 
 def iter_refs():
