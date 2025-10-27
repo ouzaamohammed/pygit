@@ -183,3 +183,12 @@ def iter_commits_and_parents(oids):
 
 def create_branch(name, oid):
     data.update_ref(f"refs/heads/{name}", data.ref_value(symbolic=False, value=oid))
+
+
+def get_branch_name():
+    HEAD = data.get_ref("HEAD", deref=False)
+    if not HEAD.symbolic:
+        return None
+    HEAD = HEAD.value
+    assert HEAD.startswith("refs/heads")
+    return os.path.relpath(HEAD, "refs/heads")
