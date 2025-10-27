@@ -192,3 +192,8 @@ def get_branch_name():
     HEAD = HEAD.value
     assert HEAD.startswith("refs/heads")
     return os.path.relpath(HEAD, "refs/heads")
+
+
+def iter_branch_names():
+    for refname, _ in data.iter_refs("refs/heads"):
+        yield os.path.relpath(refname, "refs/heads")
