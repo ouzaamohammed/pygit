@@ -139,5 +139,5 @@ def hash_object(args):
 
 
 def init(args):
-    data.init()
+    base.init()
     print(f"Initialized empty Pygit repository in {os.getcwd()}/{data.git_dir}")

@@ -7,6 +7,11 @@ from . import data
 from collections import deque, namedtuple
 
 
+def init():
+    data.init()
+    data.update_ref("HEAD", data.ref_value(symbolic=True, value="refs/heads/master"))
+
+
 def write_tree(directory="."):
     obj_entries = []
     with os.scandir(directory) as entries:
