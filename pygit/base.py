@@ -197,3 +197,7 @@ def get_branch_name():
 def iter_branch_names():
     for refname, _ in data.iter_refs("refs/heads"):
         yield os.path.relpath(refname, "refs/heads")
+
+
+def reset(oid):
+    data.update_ref("HEAD", data.ref_value(symbolic=False, value=oid))
