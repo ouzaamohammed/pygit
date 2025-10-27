@@ -35,9 +35,7 @@ def get_object(oid, expected="blob"):
 ref_value = namedtuple("ref_value", ["symbolic", "value"])
 
 
-# set the last commit's object id in .pygit/HEAD
 def update_ref(ref, value, deref=True):
-    assert not value.symbolic
     ref = _get_ref_internal(ref, deref)[0]
 
     assert value.value
