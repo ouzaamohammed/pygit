@@ -6,7 +6,7 @@ from tempfile import NamedTemporaryFile as Temp
 from . import data
 
 
-def compare_tree(*trees):
+def compare_trees(*trees):
     entries = defaultdict(lambda: [None] * len(trees))
     for i, tree in enumerate(trees):
         for path, oid in tree.items():
@@ -18,7 +18,7 @@ def compare_tree(*trees):
 
 def diff_trees(tree_from, tree_to):
     output = b""
-    for path, object_from, object_to in compare_tree(tree_from, tree_to):
+    for path, object_from, object_to in compare_trees(tree_from, tree_to):
         if object_from != object_to:
             output += diff_blobs(object_from, object_to, path)
     return output
@@ -48,3 +48,14 @@ def diff_blobs(object_from, object_to, path="blob"):
             output, _ = proc.communicate()
 
         return output
+
+
+def iter_changed_files(tree_from, tree_to):
+    for path, object_from, object_to in compare_trees(tree_from, tree_to):
+        if object_from != object_to:
+            action = (
+                "new file"
+                if not object_from
+                else "deleted" if not object_to else "modified"
+            )
+            yield path, action
