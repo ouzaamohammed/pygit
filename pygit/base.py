@@ -4,6 +4,8 @@ import operator
 import string
 
 from . import data
+from . import diff
+
 from collections import deque, namedtuple
 
 
@@ -213,3 +215,23 @@ def get_working_tree():
             with open(path, "rb") as f:
                 result[path] = data.hash_object(f.read())
     return result
+
+
+def read_tree_merged(tree_HEAD, tree_other):
+    _empty_current_directory()
+    for path, blob in diff.merge_trees(
+        get_tree(tree_HEAD), get_tree(tree_other)
+    ).items():
+        os.makedirs(f"./{os.path.dirname(path)}", exist_ok=True)
+        with open(path, "wb") as f:
+            f.write(blob)
+
+
+def merge(other):
+    HEAD = data.get_ref("HEAD").value
+    assert HEAD
+    c_HEAD = get_commit(HEAD)
+    c_other = get_commit(other)
+
+    read_tree_merged(c_HEAD.tree, c_other.tree)
+    print("Merged in working tree")
