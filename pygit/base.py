@@ -99,6 +99,11 @@ def commit(message):
     HEAD = data.get_ref("HEAD").value
     if HEAD:
         commit += f"parent {HEAD}\n"
+    MERGE_HEAD = data.get_ref("MERGE_HEAD").value
+    if MERGE_HEAD:
+        commit += f"parent {MERGE_HEAD}\n"
+        data.delete_ref("MERGE_HEAD", deref=False)
+
     commit += "\n"
     commit += f"{message}\n"
 
@@ -236,5 +241,7 @@ def merge(other):
     c_HEAD = get_commit(HEAD)
     c_other = get_commit(other)
 
+    data.update_ref("MERGE_HEAD", data.ref_value(symbolic=False, value=other))
+
     read_tree_merged(c_HEAD.tree, c_other.tree)
-    print("Merged in working tree")
+    print("Merged in working tree\nPlease commit")
