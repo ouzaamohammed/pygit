@@ -11,7 +11,7 @@ git_dir = None
 def change_git_dir(new_dir):
     global git_dir
     old_dir = git_dir
-    git_dir = f"{new_dir}/.ugit"
+    git_dir = f"{new_dir}/.pygit"
     yield
     git_dir = old_dir
 
