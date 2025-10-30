@@ -225,10 +225,10 @@ def get_working_tree():
     return result
 
 
-def read_tree_merged(tree_HEAD, tree_other):
+def read_tree_merged(tree_base, tree_HEAD, tree_other):
     _empty_current_directory()
     for path, blob in diff.merge_trees(
-        get_tree(tree_HEAD), get_tree(tree_other)
+        get_tree(tree_base), get_tree(tree_HEAD), get_tree(tree_other)
     ).items():
         os.makedirs(f"./{os.path.dirname(path)}", exist_ok=True)
         with open(path, "wb") as f:
@@ -238,12 +238,14 @@ def read_tree_merged(tree_HEAD, tree_other):
 def merge(other):
     HEAD = data.get_ref("HEAD").value
     assert HEAD
+    merge_base = get_merge_base(other, HEAD)
+    c_base = get_commit(merge_base)
     c_HEAD = get_commit(HEAD)
     c_other = get_commit(other)
 
     data.update_ref("MERGE_HEAD", data.ref_value(symbolic=False, value=other))
 
-    read_tree_merged(c_HEAD.tree, c_other.tree)
+    read_tree_merged(c_base.tree, c_HEAD.tree, c_other.tree)
     print("Merged in working tree\nPlease commit")
 
 
