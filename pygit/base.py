@@ -174,6 +174,7 @@ def get_oid(name):
 
 
 def iter_commits_and_parents(oids):
+    # N.B. Must yield the oid before acccessing it (to allow caller to fetch it if needed)
     oids = deque(oids)
     visited = set()
 
@@ -189,6 +190,29 @@ def iter_commits_and_parents(oids):
         oids.extendleft(commit.parents[:1])
         # Return other parents later
         oids.extend(commit.parents[1:])
+
+
+def iter_objects_in_commits(oids):
+    # N.B. Must yield the oid before acccessing it (to allow caller to fetch it
+    # if needed)
+    visited = set()
+
+    def iter_objects_in_tree(oid):
+        visited.add(oid)
+        yield oid
+        for obj_type, oid, _ in _iter_tree_entries(oid):
+            if oid not in visited:
+                if obj_type == "tree":
+                    yield from iter_objects_in_tree(oid)
+                else:
+                    visited.add(oid)
+                    yield oid
+
+    for oid in iter_commits_and_parents(oids):
+        yield oid
+        commit = get_commit(oid)
+        if commit.tree not in visited:
+            yield from iter_objects_in_tree(commit.tree)
 
 
 def create_branch(name, oid):
