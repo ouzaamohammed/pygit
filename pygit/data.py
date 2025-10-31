@@ -1,6 +1,7 @@
 import os
 import hashlib
 import shutil
+import json
 
 from collections import namedtuple
 from contextlib import contextmanager
@@ -114,3 +115,16 @@ def fetch_object_if_missing(oid, remote_git_dir):
 def push_object(oid, remote_git_dir):
     remote_git_dir += "/.pygit"
     shutil.copy(f"{git_dir}/objects/{oid}", f"{remote_git_dir}/objects/{oid}")
+
+
+@contextmanager
+def get_index():
+    index = {}
+    if os.path.isfile(f"{git_dir}/index"):
+        with open(f"{git_dir}/index") as f:
+            index = json.load(f)
+
+    yield index
+
+    with open(f"{git_dir}/index", "w") as f:
+        json.dump(index, f)

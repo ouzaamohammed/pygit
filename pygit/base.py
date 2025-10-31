@@ -291,3 +291,13 @@ def get_merge_base(oid1, oid2):
 
 def is_ancestor_of(commit, maybe_ancestor):
     return maybe_ancestor in iter_commits_and_parents({commit})
+
+
+def add(filenames):
+    with data.get_index() as index:
+        for filename in filenames:
+            # Normalize path
+            filename = os.path.relpath(filename)
+            with open(filename, "rb") as f:
+                oid = data.hash_object(f.read())
+                index[filename] = oid
