@@ -94,12 +94,32 @@ def _empty_current_directory():
                 pass
 
 
-def read_tree(tree_oid):
+def read_tree(tree_oid, update_working=False):
+    with data.get_index() as index:
+        index.clear()
+        index.update(get_tree(tree_oid))
+
+        if update_working:
+            _checkout_index(index)
+
+
+def read_tree_merged(t_base, t_HEAD, t_other, update_working=False):
+    with data.get_index() as index:
+        index.clear()
+        index.update(
+            diff.merge_trees(get_tree(t_base), get_tree(t_HEAD), get_tree(t_other))
+        )
+
+        if update_working:
+            _checkout_index(index)
+
+
+def _checkout_index(index):
     _empty_current_directory()
-    for path, oid in get_tree(tree_oid, base_path="./").items():
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+    for path, oid in index.items():
+        os.makedirs(os.path.dirname(f"./{path}"), exist_ok=True)
         with open(path, "wb") as f:
-            f.write(data.get_object(oid))
+            f.write(data.get_object(oid, "blob"))
 
 
 def commit(message):
@@ -256,16 +276,6 @@ def get_working_tree():
             with open(path, "rb") as f:
                 result[path] = data.hash_object(f.read())
     return result
-
-
-def read_tree_merged(tree_base, tree_HEAD, tree_other):
-    _empty_current_directory()
-    for path, blob in diff.merge_trees(
-        get_tree(tree_base), get_tree(tree_HEAD), get_tree(tree_other)
-    ).items():
-        os.makedirs(f"./{os.path.dirname(path)}", exist_ok=True)
-        with open(path, "wb") as f:
-            f.write(blob)
 
 
 def merge(other):
