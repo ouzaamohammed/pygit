@@ -15,27 +15,36 @@ def init():
 
 
 def write_tree(directory="."):
-    obj_entries = []
-    with os.scandir(directory) as entries:
-        for entry in entries:
-            full_path = f"{directory}/{entry.name}"
-            if is_ignored(full_path):
-                continue
+    # Index is flat, we need it as a tree of dicts
+    index_as_tree = {}
+    with data.get_index() as index:
+        for path, oid in index.items():
+            path = path.split("/")
+            dirpath, filename = path[:-1], path[-1]
 
-            if entry.is_file(follow_symlinks=False):
-                obj_type = "blob"
-                with open(full_path, "rb") as f:
-                    oid = data.hash_object(f.read())
-                    obj_entries.append((entry.name, oid, obj_type))
-            elif entry.is_dir(follow_symlinks=False):
+            current = index_as_tree
+            # Find the dict for the directory of this file
+            for dirname in dirpath:
+                current = current.setdefault(dirname, {})
+            current[filename] = oid
+
+    def write_tree_recursive(tree_dict):
+        entries = []
+        for name, value in tree_dict.items():
+            if type(value) is dict:
                 obj_type = "tree"
-                oid = write_tree(full_path)
-                obj_entries.append((entry.name, oid, obj_type))
+                oid = write_tree_recursive(value)
+            else:
+                obj_type = "blob"
+                oid = value
+            entries.append((name, oid, obj_type))
 
-    tree = "".join(
-        f"{obj_type} {oid} {name}\n" for name, oid, obj_type in sorted(obj_entries)
-    )
-    return data.hash_object(tree.encode(), "tree")
+        tree = "".join(
+            f"{obj_type} {oid} {name}\n" for name, oid, obj_type in sorted(entries)
+        )
+        return data.hash_object(tree.encode(), "tree")
+
+    return write_tree_recursive(index_as_tree)
 
 
 def is_ignored(path):
