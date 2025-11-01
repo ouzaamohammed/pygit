@@ -278,6 +278,11 @@ def get_working_tree():
     return result
 
 
+def get_index_tree():
+    with data.get_index() as index:
+        return index
+
+
 def merge(other):
     HEAD = data.get_ref("HEAD").value
     assert HEAD
