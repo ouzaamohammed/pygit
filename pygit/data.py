@@ -6,34 +6,34 @@ import json
 from collections import namedtuple
 from contextlib import contextmanager
 
-git_dir = None
+GIT_DIR = ""
 
 
 @contextmanager
 def change_git_dir(new_dir):
-    global git_dir
-    old_dir = git_dir
-    git_dir = f"{new_dir}/.pygit"
+    global GIT_DIR
+    old_dir = GIT_DIR
+    GIT_DIR = f"{new_dir}/.pygit"
     yield
-    git_dir = old_dir
+    GIT_DIR = old_dir
 
 
 def init():
-    os.makedirs(git_dir)
-    os.makedirs(f"{git_dir}/objects")
+    os.makedirs(GIT_DIR)
+    os.makedirs(f"{GIT_DIR}/objects")
 
 
 # Write binary data into file name that generated using sha-1 & return object id
 def hash_object(data, obj_type="blob"):
     obj = obj_type.encode() + b"\x00" + data
     oid = hashlib.sha1(obj).hexdigest()
-    with open(f"{git_dir}/objects/{oid}", "wb") as out:
+    with open(f"{GIT_DIR}/objects/{oid}", "wb") as out:
         out.write(obj)
     return oid
 
 
 def get_object(oid, expected="blob"):
-    with open(f"{git_dir}/objects/{oid}", "rb") as f:
+    with open(f"{GIT_DIR}/objects/{oid}", "rb") as f:
         obj = f.read()
 
     obj_type, _, content = obj.partition(b"\x00")
@@ -56,7 +56,7 @@ def update_ref(ref, value, deref=True):
     else:
         value = value.value
 
-    ref_path = f"{git_dir}/{ref}"
+    ref_path = f"{GIT_DIR}/{ref}"
     os.makedirs(os.path.dirname(ref_path), exist_ok=True)
     with open(ref_path, "w") as f:
         f.write(value)
@@ -68,11 +68,11 @@ def get_ref(ref, deref=True):
 
 def delete_ref(ref, deref=True):
     ref = _get_ref_internal(ref, deref)[0]
-    os.remove(f"{git_dir}/{ref}")
+    os.remove(f"{GIT_DIR}/{ref}")
 
 
 def _get_ref_internal(ref, deref):
-    ref_path = f"{git_dir}/{ref}"
+    ref_path = f"{GIT_DIR}/{ref}"
     value = None
     if os.path.isfile(ref_path):
         with open(ref_path) as f:
@@ -89,8 +89,8 @@ def _get_ref_internal(ref, deref):
 
 def iter_refs(prefix="", deref=True):
     refs = ["HEAD", "MERGE_HEAD"]
-    for root, _, filenames in os.walk(f"{git_dir}/refs/"):
-        root = os.path.relpath(root, git_dir)
+    for root, _, filenames in os.walk(f"{GIT_DIR}/refs/"):
+        root = os.path.relpath(root, GIT_DIR)
         refs.extend(f"{root}/{filename}" for filename in filenames)
 
     for refname in refs:
@@ -102,29 +102,29 @@ def iter_refs(prefix="", deref=True):
 
 
 def object_exists(oid):
-    return os.path.isfile(f"{git_dir}/objects/{oid}")
+    return os.path.isfile(f"{GIT_DIR}/objects/{oid}")
 
 
 def fetch_object_if_missing(oid, remote_git_dir):
     if object_exists(oid):
         return
     remote_git_dir += "/.pygit"
-    shutil.copy(f"{remote_git_dir}/objects/{oid}", f"{git_dir}/objects/{oid}")
+    shutil.copy(f"{remote_git_dir}/objects/{oid}", f"{GIT_DIR}/objects/{oid}")
 
 
 def push_object(oid, remote_git_dir):
     remote_git_dir += "/.pygit"
-    shutil.copy(f"{git_dir}/objects/{oid}", f"{remote_git_dir}/objects/{oid}")
+    shutil.copy(f"{GIT_DIR}/objects/{oid}", f"{remote_git_dir}/objects/{oid}")
 
 
 @contextmanager
 def get_index():
     index = {}
-    if os.path.isfile(f"{git_dir}/index"):
-        with open(f"{git_dir}/index") as f:
+    if os.path.isfile(f"{GIT_DIR}/index"):
+        with open(f"{GIT_DIR}/index") as f:
             index = json.load(f)
 
     yield index
 
-    with open(f"{git_dir}/index", "w") as f:
+    with open(f"{GIT_DIR}/index", "w") as f:
         json.dump(index, f)
