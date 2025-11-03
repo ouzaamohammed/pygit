@@ -13,7 +13,10 @@ GIT_DIR = ""
 def change_git_dir(new_dir):
     global GIT_DIR
     old_dir = GIT_DIR
-    GIT_DIR = f"{new_dir}/.pygit"
+    if new_dir == ".":
+        GIT_DIR = ".pygit"
+    else:
+        GIT_DIR = f"{new_dir}/.pygit"
     yield
     GIT_DIR = old_dir
 
